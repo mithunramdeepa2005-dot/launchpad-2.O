@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Launchpad | Global Career Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: '#003BFF',
+              secondary: '#FF4A4A',
+              accent: '#FFB800',
+              score_high: '#10b981',
+              score_mid: '#f59e0b',
+              score_low: '#ef4444',
+            },
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+              heading: ['Poppins', 'sans-serif'],
+            },
+            backgroundImage: {
+              'brand-gradient': 'linear-gradient(to right, #003BFF, #00D1FF)',
+              'success-gradient': 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+      body {
+        font-family: 'Inter', sans-serif;
+        background-color: #F8FAFC;
+      }
+      h1, h2, h3, h4, h5, h6 {
+        font-family: 'Poppins', sans-serif;
+      }
+      .page {
+        display: none;
+        animation: fadeIn 0.4s ease-out;
+      }
+      .page.active {
+        display: block;
+      }
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(15px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      .circle-chart {
+        transform: rotate(-90deg);
+        filter: drop-shadow(0 0 8px rgba(0, 59, 255, 0.2));
+      }
+      .circle-bg {
+        fill: none;
+        stroke: #f1f5f9;
+        stroke-width: 10;
+      }
+      .circle-progress {
+        fill: none;
+        stroke-width: 10;
+        stroke-dasharray: 351;
+        stroke-dashoffset: 351;
+        transition: stroke-dashoffset 1.5s cubic-bezier(0.4, 0, 0.2, 1), stroke 0.3s ease;
+        stroke-linecap: round;
+      }
+      .payment-overlay {
+        backdrop-filter: blur(12px);
+        background: rgba(15, 23, 42, 0.9);
+      }
+      .qr-scanner-line {
+        height: 3px;
+        background: #00D1FF;
+        width: 100%;
+        position: absolute;
+        animation: scan 2s linear infinite;
+        box-shadow: 0 0 15px #00D1FF;
+      }
+      @keyframes scan {
+        0% { top: 0; }
+        50% { top: 100%; }
+        100% { top: 0; }
+      }
+    </style>
+    <script type="importmap">
+{
+  "imports": {
+    "@google/genai": "https://esm.sh/@google/genai@^1.33.0",
+    "react": "https://esm.sh/react@^19.2.3",
+    "lucide-react": "https://esm.sh/lucide-react@^0.562.0",
+    "react/": "https://esm.sh/react@^19.2.3/"
+  }
+}
+</script>
+  <link rel="stylesheet" href="/index.css">
+</head>
+  <body class="min-h-screen flex flex-col">
+    
+    <!-- Navbar -->
+    <header class="sticky top-0 z-50 bg-white/80 backdrop-blur-lg shadow-sm border-b border-slate-100">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center h-20">
+          <div class="flex items-center space-x-3 cursor-pointer group" onclick="navigateTo('home')">
+            <div class="w-11 h-11 bg-brand-gradient rounded-2xl flex items-center justify-center shadow-lg transform group-hover:scale-110 transition-transform">
+              <i data-lucide="rocket" class="text-white w-6 h-6"></i>
+            </div>
+            <div>
+              <h1 class="text-2xl font-black font-heading tracking-tight text-slate-900 leading-none">
+                LAUNCH<span class="text-primary">PAD</span>
+              </h1>
+              <p class="text-[9px] text-slate-400 font-bold tracking-[0.2em] uppercase mt-1">Global Career Bridge</p>
+            </div>
+          </div>
+
+          <nav class="hidden md:flex space-x-8 items-center">
+            <button onclick="navigateTo('home')" class="text-sm font-semibold text-slate-600 hover:text-primary transition-colors">Home</button>
+            <button onclick="navigateTo('about')" class="text-sm font-semibold text-slate-600 hover:text-primary transition-colors">About</button>
+            <button onclick="navigateTo('dashboard')" class="bg-primary text-white px-6 py-2.5 rounded-xl font-bold hover:bg-blue-700 transition shadow-lg shadow-blue-500/20 text-sm">Dashboard</button>
+          </nav>
+          
+          <div class="md:hidden">
+            <button id="mobile-menu-btn" class="text-slate-600 p-2">
+              <i data-lucide="menu"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="flex-grow">
+      
+      <!-- Home Page -->
+      <section id="home" class="page active">
+        <div class="relative overflow-hidden bg-white py-24 lg:py-40">
+          <div class="absolute top-0 right-0 w-2/3 h-full bg-blue-50/40 skew-x-[-15deg] transform origin-top-right -z-10"></div>
+          <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col lg:flex-row items-center">
+            <div class="lg:w-1/2 space-y-10 text-center lg:text-left">
+              <h1 class="text-6xl lg:text-7xl font-extrabold font-heading text-slate-900 leading-[1.1]">
+                Launch Your <br/>
+                <span class="text-transparent bg-clip-text bg-brand-gradient">Global</span> Future.
+              </h1>
+              <p class="text-xl text-slate-600 max-w-xl mx-auto lg:mx-0 leading-relaxed">
+                The leading repository for university resumes. Enhance your profile with AI intelligence and connect with top-tier global employers.
+              </p>
+              <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+                <button onclick="navigateTo('dashboard')" class="bg-primary text-white px-10 py-5 rounded-2xl font-bold shadow-2xl hover:bg-blue-700 transition transform hover:-translate-y-1">
+                  Analyze My Resume
+                </button>
+                <button class="bg-white text-slate-900 border border-slate-200 px-10 py-5 rounded-2xl font-bold hover:border-primary transition">
+                  Employer Hub
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Dashboard Section -->
+      <section id="dashboard" class="page">
+        <div class="max-w-7xl mx-auto px-4 py-12">
+            
+            <!-- Auth View -->
+            <div id="auth-view" class="max-w-md mx-auto bg-white rounded-3xl shadow-2xl p-10 border border-slate-50">
+                <div class="text-center mb-10">
+                    <div class="bg-blue-50 w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-6 transform rotate-3">
+                        <i data-lucide="shield-check" class="w-10 h-10 text-primary"></i>
+                    </div>
+                    <h2 class="text-3xl font-extrabold font-heading text-slate-900 tracking-tight">Portal Entry</h2>
+                    <p class="text-sm text-slate-500 mt-2">Access your secure professional workspace</p>
+                </div>
+                <form id="login-form" class="space-y-5">
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2">Full Name</label>
+                        <div class="relative">
+                            <i data-lucide="user" class="absolute left-4 top-3.5 w-4 h-4 text-slate-400"></i>
+                            <input type="text" id="auth-name" required placeholder="Jane Doe" class="w-full pl-11 pr-4 py-3.5 rounded-2xl border border-slate-200 focus:ring-2 focus:ring-primary outline-none text-sm transition-all">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2">Role</label>
+                            <select id="auth-role" class="w-full px-4 py-3.5 rounded-2xl border border-slate-900 bg-slate-900 text-white text-xs font-bold outline-none cursor-pointer">
+                                <option value="Student">Student</option>
+                                <option value="Professor">Professor</option>
+                                <option value="Scholar">Scholar</option>
+                                <option value="Recruiter">Recruiter</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2">Location</label>
+                            <select id="auth-country" class="w-full px-4 py-3.5 rounded-2xl border border-slate-900 bg-slate-900 text-white text-xs font-bold outline-none cursor-pointer">
+                                <option value="India">India</option>
+                                <option value="USA">United States</option>
+                                <option value="UK">United Kingdom</option>
+                                <option value="Canada">Canada</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                         <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2">Email</label>
+                         <div class="relative">
+                            <i data-lucide="mail" class="absolute left-4 top-3.5 w-4 h-4 text-slate-400"></i>
+                            <input type="email" id="auth-email" required placeholder="name@email.com" class="w-full pl-11 pr-4 py-3.5 rounded-2xl border border-slate-200 focus:ring-2 focus:ring-primary outline-none text-sm">
+                         </div>
+                    </div>
+                    <div>
+                         <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2">Password</label>
+                         <div class="relative">
+                            <i data-lucide="lock" class="absolute left-4 top-3.5 w-4 h-4 text-slate-400"></i>
+                            <input type="password" id="auth-password" required placeholder="••••••••" class="w-full pl-11 pr-4 py-3.5 rounded-2xl border border-slate-200 focus:ring-2 focus:ring-primary outline-none text-sm">
+                         </div>
+                    </div>
+
+                    <button type="submit" class="w-full bg-primary text-white font-extrabold py-4 rounded-2xl transition shadow-2xl hover:bg-blue-700 flex justify-center items-center mt-4">
+                        <span id="login-btn-text">Authenticate & Enter</span>
+                        <i id="login-spinner" data-lucide="loader-2" class="w-5 h-5 animate-spin hidden ml-3"></i>
+                    </button>
+                </form>
+            </div>
+
+            <!-- App View -->
+            <div id="app-view" class="hidden relative">
+                <!-- User Header -->
+                <div class="flex flex-col md:flex-row justify-between items-center mb-10 bg-white p-8 rounded-3xl shadow-sm border border-slate-100">
+                    <div class="flex items-center space-x-5">
+                        <div class="w-16 h-16 bg-slate-900 text-white rounded-2xl flex items-center justify-center shadow-xl">
+                            <i data-lucide="user-circle" class="w-8 h-8"></i>
+                        </div>
+                        <div>
+                            <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Hello, <span id="user-name-display" class="text-primary">User</span></h1>
+                            <p class="text-sm text-slate-400 font-medium flex items-center mt-1">
+                                <span class="inline-block w-2.5 h-2.5 bg-green-500 rounded-full mr-2 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></span>
+                                <span id="user-role-display">Student</span> • <span id="user-country-display">India</span>
+                            </p>
+                        </div>
+                    </div>
+                    <button onclick="logout()" class="mt-6 md:mt-0 px-6 py-2.5 border border-slate-200 rounded-xl text-slate-500 hover:bg-slate-50 text-sm font-bold flex items-center transition">
+                        <i data-lucide="log-out" class="w-4 h-4 mr-2"></i> Exit Securely
+                    </button>
+                </div>
+
+                <div class="grid lg:grid-cols-12 gap-8">
+                    <!-- Left Column: Input & Sync -->
+                    <div class="lg:col-span-7 space-y-8">
+                        <!-- AI Input Area -->
+                        <div class="bg-white rounded-3xl shadow-sm border border-slate-100 p-8 relative">
+                             <div class="flex items-center justify-between mb-6">
+                                <h2 class="text-xl font-extrabold font-heading text-slate-900 flex items-center">
+                                    <i data-lucide="sparkles" class="w-6 h-6 mr-3 text-primary"></i> Resume Intel Engine
+                                </h2>
+                                <span class="text-[10px] font-bold text-slate-400 bg-slate-50 px-3 py-1 rounded-full uppercase tracking-tighter">Gemini 3 Pro</span>
+                             </div>
+                             
+                             <!-- Dark Theme Textarea -->
+                             <div class="relative group">
+                                <textarea id="resume-text" class="w-full h-96 rounded-3xl border border-slate-800 p-6 focus:ring-4 focus:ring-primary/10 text-sm resize-none bg-slate-950 text-slate-100 outline-none leading-relaxed placeholder:text-slate-700 transition-all font-mono" placeholder="Paste your resume content here for deep analysis..."></textarea>
+                                <div class="absolute bottom-6 right-6 flex items-center space-x-3">
+                                    <button id="analyze-btn" class="px-10 py-4 rounded-2xl bg-primary text-white text-sm font-black hover:bg-blue-700 transition-all shadow-2xl flex items-center transform hover:scale-105">
+                                        <i data-lucide="zap" class="w-4 h-4 mr-2 text-yellow-400 fill-yellow-400"></i>
+                                        <span id="analyze-btn-text">Run Full Score</span>
+                                    </button>
+                                </div>
+                             </div>
+                        </div>
+
+                        <!-- Sync & Payment Area -->
+                        <div class="bg-slate-900 text-white rounded-[2.5rem] p-10 shadow-2xl border border-slate-800 relative overflow-hidden group">
+                            <div class="absolute top-0 right-0 p-8 opacity-10 transform translate-x-4 -translate-y-4">
+                                <i data-lucide="database" class="w-40 h-40"></i>
+                            </div>
+                            
+                            <h2 class="text-2xl font-black mb-8 flex items-center relative z-10 tracking-tight">
+                                <i data-lucide="cloud-lightning" class="w-7 h-7 mr-3 text-blue-400"></i> Repository Sync
+                            </h2>
+                            
+                            <div id="upload-step-1" class="space-y-10 relative z-10">
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mb-6">1. Target Career Domain</label>
+                                    <div id="category-grid" class="grid grid-cols-2 md:grid-cols-3 gap-4"></div>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mb-6">2. Online Transaction Method</label>
+                                    <div class="grid grid-cols-2 gap-5">
+                                        <button onclick="selectPaymentMethod('upi')" id="pay-upi-btn" class="flex items-center space-x-4 p-5 rounded-2xl border border-slate-800 bg-slate-950/50 hover:bg-slate-800 transition-all group/btn">
+                                            <div class="w-12 h-12 rounded-xl bg-slate-900 flex items-center justify-center group-hover/btn:bg-blue-600 transition-colors">
+                                                <i data-lucide="smartphone" class="w-6 h-6 text-slate-500 group-hover/btn:text-white"></i>
+                                            </div>
+                                            <div class="text-left">
+                                                <span class="block text-sm font-black text-slate-400 group-hover/btn:text-white leading-none">UPI Payment</span>
+                                                <span class="text-[9px] text-slate-600 uppercase font-bold tracking-widest mt-1">GPay, PhonePe</span>
+                                            </div>
+                                        </button>
+                                        <button onclick="selectPaymentMethod('razorpay')" id="pay-razor-btn" class="flex items-center space-x-4 p-5 rounded-2xl border border-slate-800 bg-slate-950/50 hover:bg-slate-800 transition-all group/btn">
+                                            <div class="w-12 h-12 rounded-xl bg-slate-900 flex items-center justify-center group-hover/btn:bg-primary transition-colors">
+                                                <i data-lucide="credit-card" class="w-6 h-6 text-slate-500 group-hover/btn:text-white"></i>
+                                            </div>
+                                            <div class="text-left">
+                                                <span class="block text-sm font-black text-slate-400 group-hover/btn:text-white leading-none">Razorpay Secure</span>
+                                                <span class="text-[9px] text-slate-600 uppercase font-bold tracking-widest mt-1">Card, Banking</span>
+                                            </div>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center justify-between pt-10 border-t border-slate-800">
+                                    <div class="flex items-center space-x-4">
+                                        <div class="p-3 bg-slate-800 rounded-2xl">
+                                            <i data-lucide="lock" class="w-6 h-6 text-blue-400"></i>
+                                        </div>
+                                        <div>
+                                            <span class="text-slate-500 text-[10px] font-black uppercase tracking-widest">Transaction Fee</span>
+                                            <p class="text-4xl font-black text-white" id="price-display">₹100</p>
+                                        </div>
+                                    </div>
+                                    <button id="pay-upload-btn" onclick="startPaymentProcess()" class="px-12 py-5 rounded-2xl bg-primary text-white font-black hover:bg-blue-700 transition shadow-[0_20px_40px_rgba(0,59,255,0.3)] opacity-50 cursor-not-allowed transform active:scale-95" disabled>
+                                        Initiate Secure Sync
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Animated Payment Screens -->
+                            <div id="payment-overlay" class="hidden absolute inset-0 payment-overlay rounded-[2.5rem] flex flex-col items-center justify-center z-50 text-white p-10 animate-fadeIn">
+                                <div id="upi-qr-view" class="hidden flex flex-col items-center space-y-8">
+                                    <div class="bg-white p-6 rounded-3xl relative overflow-hidden shadow-[0_0_50px_rgba(255,255,255,0.1)]">
+                                        <div class="qr-scanner-line"></div>
+                                        <svg class="w-56 h-56 text-slate-900" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                            <rect x="2" y="2" width="6" height="6"/><rect x="16" y="2" width="6" height="6"/><rect x="2" y="16" width="6" height="6"/>
+                                            <path d="M10 2v4M10 10h4M2 10h4M16 10h6M22 16v6M16 22h6M10 16v6M16 16h2"/>
+                                        </svg>
+                                    </div>
+                                    <div class="text-center">
+                                        <h3 class="text-2xl font-black tracking-tight">Scan for Instant Sync</h3>
+                                        <p class="text-sm text-slate-400 mt-2">Verified UPI Transaction Gateway</p>
+                                    </div>
+                                    <div class="flex items-center space-x-3 bg-blue-500/10 border border-blue-500/30 px-6 py-3 rounded-full">
+                                        <i data-lucide="loader-2" class="w-5 h-5 animate-spin text-blue-400"></i>
+                                        <span class="text-xs font-black uppercase tracking-widest text-blue-400">Authenticating payment...</span>
+                                    </div>
+                                </div>
+
+                                <div id="razorpay-view" class="hidden flex flex-col items-center space-y-8">
+                                    <div class="w-24 h-24 bg-primary rounded-[2rem] flex items-center justify-center shadow-[0_20px_40px_rgba(0,59,255,0.5)]">
+                                        <i data-lucide="credit-card" class="w-10 h-10 text-white"></i>
+                                    </div>
+                                    <div class="text-center">
+                                        <h3 class="text-2xl font-black tracking-tight">Connecting Razorpay Secure</h3>
+                                        <p class="text-sm text-slate-400 mt-2">Standard AES-256 Bank Encryption</p>
+                                    </div>
+                                    <div class="w-80 bg-slate-800 h-3 rounded-full overflow-hidden">
+                                        <div class="h-full bg-blue-500 animate-[progress_4s_linear_infinite]" style="width: 100%"></div>
+                                    </div>
+                                    <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Awaiting Bank Callback...</p>
+                                </div>
+                            </div>
+
+                            <!-- Success Modal -->
+                            <div id="upload-success" class="hidden text-center flex flex-col items-center animate-fadeIn relative z-10 py-10">
+                                <div class="w-20 h-20 bg-success-gradient rounded-3xl flex items-center justify-center shadow-[0_20px_40px_rgba(16,185,129,0.3)] mb-8">
+                                    <i data-lucide="check" class="w-10 h-10 text-white"></i>
+                                </div>
+                                <h3 class="text-3xl font-black text-white tracking-tight">Sync Complete!</h3>
+                                <p class="text-slate-400 mt-3 max-w-xs mx-auto">Your verified profile has been published to the global repository.</p>
+                                
+                                <div class="mt-10 p-8 bg-slate-950 border border-slate-800 rounded-[2rem] w-full max-w-sm">
+                                    <p class="text-[10px] text-slate-500 font-black uppercase tracking-[0.2em] mb-3">Certified Merit Score</p>
+                                    <p id="success-score-display" class="text-6xl font-black text-emerald-400 tracking-tighter">0</p>
+                                    <div class="mt-6 flex items-center justify-center space-x-2 text-slate-400 text-xs font-bold">
+                                        <i data-lucide="globe" class="w-4 h-4"></i>
+                                        <span>Published to <span id="success-category-display" class="text-white">Engineering</span> Hub</span>
+                                    </div>
+                                </div>
+                                
+                                <button onclick="resetUploadView()" class="mt-10 px-8 py-3 bg-slate-800 rounded-xl text-xs font-black text-white hover:bg-slate-700 transition uppercase tracking-widest">New Upload</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Score Broad Clear Attractive -->
+                    <div class="lg:col-span-5">
+                        <div class="bg-white rounded-3xl shadow-xl border border-slate-100 p-10 h-full min-h-[700px] flex flex-col">
+                            <h2 class="text-2xl font-black font-heading text-slate-900 mb-10 flex items-center">
+                                <i data-lucide="bar-chart-big" class="w-7 h-7 mr-3 text-primary"></i> Scoreboard
+                            </h2>
+                            
+                            <div id="analysis-empty" class="flex-grow flex flex-col items-center justify-center space-y-6 opacity-30 grayscale">
+                                <i data-lucide="pie-chart" class="w-24 h-24 text-slate-300"></i>
+                                <div class="text-center">
+                                    <p class="text-lg font-bold text-slate-900">Analysis Pending</p>
+                                    <p class="text-sm text-slate-500 max-w-[200px] mt-1 mx-auto">Your metrics will populate here after the AI engine runs.</p>
+                                </div>
+                            </div>
+
+                            <div id="analysis-content" class="hidden space-y-10 animate-fadeIn flex-grow">
+                                <!-- Big Broad Score Display -->
+                                <div class="relative flex flex-col items-center">
+                                    <div class="relative flex items-center justify-center p-2 bg-slate-50 rounded-full shadow-inner">
+                                         <svg class="w-56 h-56 circle-chart">
+                                           <circle class="circle-bg" cx="112" cy="112" r="100"></circle>
+                                           <circle id="score-circle" class="circle-progress" cx="112" cy="112" r="100"></circle>
+                                         </svg>
+                                         <div class="absolute flex flex-col items-center">
+                                            <span id="score-text" class="text-7xl font-black text-slate-900 tracking-tighter">0</span>
+                                            <span class="text-[10px] font-black text-slate-400 tracking-[0.3em] uppercase -mt-2">Global Index</span>
+                                         </div>
+                                    </div>
+                                    
+                                    <div class="mt-8 w-full max-w-xs p-5 bg-primary/5 rounded-2xl border border-primary/10 flex items-center justify-between">
+                                        <div>
+                                            <p class="text-[9px] text-primary font-black uppercase tracking-widest">AI Prediction</p>
+                                            <p id="role-fit" class="text-sm font-black text-slate-900 mt-0.5">-</p>
+                                        </div>
+                                        <i data-lucide="target" class="w-6 h-6 text-primary"></i>
+                                    </div>
+                                </div>
+
+                                <!-- Attractive Lists -->
+                                <div class="space-y-8">
+                                    <div>
+                                        <div class="flex items-center space-x-3 mb-5">
+                                            <div class="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center">
+                                                <i data-lucide="trending-up" class="w-4 h-4 text-emerald-600"></i>
+                                            </div>
+                                            <h4 class="text-xs font-black text-slate-800 uppercase tracking-widest">Top Assets</h4>
+                                        </div>
+                                        <ul id="list-strengths" class="space-y-3"></ul>
+                                    </div>
+                                    
+                                    <div>
+                                        <div class="flex items-center space-x-3 mb-5">
+                                            <div class="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center">
+                                                <i data-lucide="wrench" class="w-4 h-4 text-amber-600"></i>
+                                            </div>
+                                            <h4 class="text-xs font-black text-slate-800 uppercase tracking-widest">Optimizations</h4>
+                                        </div>
+                                        <ul id="list-suggestions" class="space-y-3"></ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="bg-slate-950 text-slate-500 py-12 border-t border-slate-900">
+      <div class="max-w-7xl mx-auto px-4 text-center">
+          <div class="flex justify-center space-x-6 mb-8 grayscale opacity-50">
+             <i data-lucide="shield" class="w-5 h-5"></i>
+             <i data-lucide="globe-2" class="w-5 h-5"></i>
+             <i data-lucide="award" class="w-5 h-5"></i>
+          </div>
+          <p class="text-[10px] font-bold uppercase tracking-[0.4em]">Launchpad Global • Engineered for Career Success • 2024</p>
+      </div>
+    </footer>
+
+    <script type="module">
+      import { GoogleGenAI, Type } from "@google/genai";
+
+      const state = {
+          isLoggedIn: false,
+          user: { name: '', role: 'Student', country: 'India' },
+          category: 'Engineering',
+          paymentMethod: null,
+          currentAnalysis: null,
+          pricing: {
+             'Engineering': 100,
+             'Arts & Design': 150,
+             'Management': 200,
+             'Research': 300,
+             'Academic': 350,
+             'Other': 400
+          }
+      };
+
+      // --- UTILS ---
+      window.navigateTo = (pageId) => {
+          document.querySelectorAll('.page').forEach(el => {
+              el.classList.remove('active');
+              if(el.id === pageId) el.classList.add('active');
+          });
+          window.scrollTo(0, 0);
+          lucide.createIcons();
+      };
+
+      // --- AUTH ---
+      const loginForm = document.getElementById('login-form');
+      loginForm.addEventListener('submit', (e) => {
+          e.preventDefault();
+          const name = document.getElementById('auth-name').value;
+          const role = document.getElementById('auth-role').value;
+          const country = document.getElementById('auth-country').value;
+
+          document.getElementById('login-spinner').classList.remove('hidden');
+          document.getElementById('login-btn-text').textContent = 'Validating Key...';
+
+          setTimeout(() => {
+             state.isLoggedIn = true;
+             state.user = { name, role, country };
+             state.category = role === 'Scholar' ? 'Research' : (role === 'Professor' ? 'Academic' : 'Engineering');
+             
+             document.getElementById('auth-view').classList.add('hidden');
+             document.getElementById('app-view').classList.remove('hidden');
+             document.getElementById('user-name-display').textContent = name;
+             document.getElementById('user-role-display').textContent = role;
+             document.getElementById('user-country-display').textContent = country;
+             
+             renderCategories();
+             document.getElementById('login-spinner').classList.add('hidden');
+             document.getElementById('login-btn-text').textContent = 'Authenticate & Enter';
+             lucide.createIcons();
+          }, 1200);
+      });
+
+      window.logout = () => {
+          state.isLoggedIn = false;
+          state.currentAnalysis = null;
+          document.getElementById('app-view').classList.add('hidden');
+          document.getElementById('auth-view').classList.remove('hidden');
+          resetUploadView();
+          loginForm.reset();
+      };
+
+      // --- CATEGORIES ---
+      function renderCategories() {
+          const grid = document.getElementById('category-grid');
+          grid.innerHTML = '';
+          Object.keys(state.pricing).forEach(cat => {
+              const price = state.pricing[cat];
+              const isActive = state.category === cat;
+              const btn = document.createElement('button');
+              btn.className = `relative p-5 rounded-2xl border text-left transition-all duration-300 ${isActive ? 'border-primary bg-primary shadow-[0_15px_30px_rgba(0,59,255,0.4)] text-white scale-105 z-10' : 'border-slate-800 bg-slate-950 text-slate-500 hover:border-slate-700'}`;
+              btn.innerHTML = `
+                <span class="block text-[9px] font-black uppercase tracking-widest mb-1 ${isActive ? 'text-blue-100' : 'opacity-70'}">${cat}</span>
+                <span class="block text-2xl font-black">₹${price}</span>
+                ${isActive ? '<i data-lucide="check-circle-2" class="absolute top-3 right-3 w-4 h-4 text-white"></i>' : ''}
+              `;
+              btn.onclick = () => {
+                  state.category = cat;
+                  renderCategories();
+                  lucide.createIcons();
+              };
+              grid.appendChild(btn);
+          });
+          document.getElementById('price-display').textContent = `₹${state.pricing[state.category]}`;
+      }
+
+      // --- PAYMENT FLOW ---
+      window.selectPaymentMethod = (method) => {
+          state.paymentMethod = method;
+          const upiBtn = document.getElementById('pay-upi-btn');
+          const razorBtn = document.getElementById('pay-razor-btn');
+          const submitBtn = document.getElementById('pay-upload-btn');
+
+          if (method === 'upi') {
+            upiBtn.classList.add('border-blue-500', 'bg-blue-600/20', 'text-white');
+            razorBtn.classList.remove('border-blue-500', 'bg-blue-600/20', 'text-white');
+          } else {
+            razorBtn.classList.add('border-blue-500', 'bg-blue-600/20', 'text-white');
+            upiBtn.classList.remove('border-blue-500', 'bg-blue-600/20', 'text-white');
+          }
+
+          submitBtn.disabled = false;
+          submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+          lucide.createIcons();
+      };
+
+      window.startPaymentProcess = () => {
+          if(!state.currentAnalysis) {
+              alert("Please complete AI scoring first.");
+              return;
+          }
+          
+          const overlay = document.getElementById('payment-overlay');
+          const upiView = document.getElementById('upi-qr-view');
+          const razorView = document.getElementById('razorpay-view');
+          const step1 = document.getElementById('upload-step-1');
+
+          overlay.classList.remove('hidden');
+          if (state.paymentMethod === 'upi') {
+              upiView.classList.remove('hidden');
+              razorView.classList.add('hidden');
+          } else {
+              razorView.classList.remove('hidden');
+              upiView.classList.add('hidden');
+          }
+
+          setTimeout(() => {
+              overlay.classList.add('hidden');
+              step1.classList.add('hidden');
+              document.getElementById('upload-success').classList.remove('hidden');
+              document.getElementById('success-score-display').textContent = state.currentAnalysis.score;
+              document.getElementById('success-category-display').textContent = state.category;
+              lucide.createIcons();
+          }, 3500);
+      };
+
+      window.resetUploadView = () => {
+          document.getElementById('upload-step-1').classList.remove('hidden');
+          document.getElementById('upload-success').classList.add('hidden');
+          state.paymentMethod = null;
+          document.getElementById('pay-upi-btn').classList.remove('border-blue-500', 'bg-blue-600/20', 'text-white');
+          document.getElementById('pay-razor-btn').classList.remove('border-blue-500', 'bg-blue-600/20', 'text-white');
+          const submitBtn = document.getElementById('pay-upload-btn');
+          submitBtn.disabled = true;
+          submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+          lucide.createIcons();
+      };
+
+      // --- AI ENGINE ---
+      const analyzeBtn = document.getElementById('analyze-btn');
+      analyzeBtn.onclick = async () => {
+          const text = document.getElementById('resume-text').value;
+          if(!text || text.length < 30) { 
+              alert('Please enter a more detailed resume for analysis.'); 
+              return; 
+          }
+
+          analyzeBtn.disabled = true;
+          analyzeBtn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 mr-2 animate-spin text-white"></i> Scoring...`;
+          lucide.createIcons();
+
+          try {
+              const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+              const prompt = `Act as an Elite Tech Recruiter. Analyze this resume text for impact, structure, and professional strength. 
+              Return strictly JSON: { "score": int, "roleFit": string, "strengths": [str, str, str], "suggestions": [str, str, str] }
+              Resume: "${text}"`;
+
+              const response = await ai.models.generateContent({
+                  model: "gemini-3-pro-preview",
+                  contents: prompt,
+                  config: {
+                    responseMimeType: "application/json",
+                    responseSchema: {
+                        type: Type.OBJECT,
+                        properties: {
+                            score: { type: Type.INTEGER },
+                            roleFit: { type: Type.STRING },
+                            strengths: { type: Type.ARRAY, items: { type: Type.STRING } },
+                            suggestions: { type: Type.ARRAY, items: { type: Type.STRING } }
+                        }
+                    }
+                  }
+              });
+
+              const result = JSON.parse(response.text);
+              state.currentAnalysis = result;
+              renderAnalysis(result);
+
+          } catch (e) {
+              console.error(e);
+              alert("AI processing error. Verify your API key and connection.");
+          } finally {
+              analyzeBtn.disabled = false;
+              analyzeBtn.innerHTML = `<i data-lucide="zap" class="w-4 h-4 mr-2 text-yellow-400 fill-yellow-400"></i> Run Full Score`;
+              lucide.createIcons();
+          }
+      };
+
+      function renderAnalysis(data) {
+          document.getElementById('analysis-empty').classList.add('hidden');
+          document.getElementById('analysis-content').classList.remove('hidden');
+          
+          const circle = document.getElementById('score-circle');
+          const circumference = 2 * Math.PI * 100;
+          const offset = circumference - (data.score / 100) * circumference;
+          
+          let color = '#ef4444'; // Low
+          if(data.score > 80) color = '#10b981'; // High
+          else if(data.score > 55) color = '#f59e0b'; // Mid
+          
+          circle.style.strokeDashoffset = offset;
+          circle.style.stroke = color;
+          
+          document.getElementById('score-text').textContent = data.score;
+          document.getElementById('score-text').style.color = color;
+          document.getElementById('role-fit').textContent = data.roleFit;
+          
+          document.getElementById('list-strengths').innerHTML = data.strengths.map(s => 
+              `<li class="flex items-start text-[11px] font-bold text-slate-700 bg-emerald-50/50 p-4 rounded-2xl border border-emerald-100 shadow-sm"><i data-lucide="shield-check" class="w-4 h-4 mr-3 text-emerald-500 mt-0.5"></i> ${s}</li>`
+          ).join('');
+
+          document.getElementById('list-suggestions').innerHTML = data.suggestions.map(s => 
+              `<li class="flex items-start text-[11px] font-bold text-slate-700 bg-amber-50/50 p-4 rounded-2xl border border-amber-100 shadow-sm"><i data-lucide="zap" class="w-4 h-4 mr-3 text-amber-500 mt-0.5"></i> ${s}</li>`
+          ).join('');
+          
+          lucide.createIcons();
+      }
+
+      document.addEventListener('DOMContentLoaded', () => {
+          lucide.createIcons();
+          document.getElementById('mobile-menu-btn').onclick = () => {
+             alert('Mobile menu clicked');
+          }
+      });
+    </script>
+  <script type="module" src="/index.tsx"></script>
+</body>
+</html>
